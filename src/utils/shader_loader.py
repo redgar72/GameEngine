@@ -1,6 +1,7 @@
 import os
 from typing import Optional
 import moderngl
+from .logger import logger
 
 
 class ShaderLoader:
@@ -10,6 +11,7 @@ class ShaderLoader:
             os.path.dirname(os.path.dirname(__file__)),
             'shaders'
         )
+        logger.debug(f"Shader directory set to: {self.shader_dir}")
 
     def load_shader(
             self,
@@ -17,16 +19,25 @@ class ShaderLoader:
             fragment_path: str) -> Optional[moderngl.Program]:
         """Load and compile a shader program from files."""
         try:
-            with open(os.path.join(self.shader_dir, vertex_path), 'r') as f:
+            vertex_path_full = os.path.join(self.shader_dir, vertex_path)
+            fragment_path_full = os.path.join(self.shader_dir, fragment_path)
+
+            logger.debug(f"Loading vertex shader: {vertex_path_full}")
+            with open(vertex_path_full, 'r') as f:
                 vertex_shader = f.read()
 
-            with open(os.path.join(self.shader_dir, fragment_path), 'r') as f:
+            logger.debug(f"Loading fragment shader: {fragment_path_full}")
+            with open(fragment_path_full, 'r') as f:
                 fragment_shader = f.read()
 
-            return self.ctx.program(
+            logger.debug("Compiling shader program")
+            program = self.ctx.program(
                 vertex_shader=vertex_shader,
                 fragment_shader=fragment_shader,
             )
+            logger.info("Shader program compiled successfully")
+            return program
+
         except Exception as e:
-            print(f"Error loading shader: {e}")
+            logger.error(f"Error loading shader: {e}")
             return None
